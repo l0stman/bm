@@ -1,0 +1,5 @@
+This is a simple utility that keeps track of some bookmarks using a
+flat file.  Each bookmark is composed of a pathname to a file, a page
+number and the title of the bookmark.  A file in the bookmark could be
+opened directly at the given page (edit the open function to support
+more file type).
