@@ -6,10 +6,10 @@ fs='|'
 usage()
 {
     cat<<EOF
-usage: `basename $0` [-a file] [-elho]
+usage: `basename $0` [-a pathname] [-elho]
 
 Options:
-	-a [file]	-- add file to the bookmark
+	-a [pathname]	-- add file to the bookmark
 	-d		-- delete some bookmarks
 	-e		-- edit bookmark pages
 	-l		-- list book title and bookmark page
