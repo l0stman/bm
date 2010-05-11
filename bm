@@ -1,0 +1,140 @@
+#!/bin/sh
+
+BOOKMARK=~/.bookmark
+fs='|'
+
+usage()
+{
+    cat<<EOF
+usage: `basename $0` [-a file] [-elho]
+
+Options:
+	-a [file]	-- add file to the bookmark
+	-d		-- delete some bookmarks
+	-e		-- edit bookmark pages
+	-l		-- list book title and bookmark page
+	-h		-- print this help message
+	-o		-- open a file in the bookmark
+EOF
+    exit 1
+}
+
+# List entries in the bookmark
+list ()
+{
+    awk -F $fs '{ printf "%d) %s: %s\n", NR, $1, $2 }' $BOOKMARK
+}
+
+yes_or_no ()
+{
+    local in
+    while true; do
+        read -p "$1? (y/n): " in
+        if [ $in = y -o $in = n ]; then
+            echo $in
+            return
+        fi
+    done
+}
+
+# Add a new entry in the bookmark
+add ()
+{
+    local path title page
+
+    path=$1
+    if [ ${path%${path#?}} != "/" ]; then
+        path="${PWD}/${path}"
+    fi
+
+    read -p "Enter the bookmark title: " title
+    read -p "Enter the page number: " page
+    echo $title$fs$page$fs$path >> $BOOKMARK
+
+    exit 0
+}
+
+# Get the line number of a bookmark from the user.
+getn ()
+{
+    local max n
+
+    max=`sed -n '$=' $BOOKMARK`
+    read -p "Enter the bookmark number: " n
+    while ! [ $n -ge 1 -a $n -le $max ]; do
+        read -p "Choose a number between 1 and $max: " n
+    done
+    echo $n
+}
+
+# Edit bookmark pages
+edit ()
+{
+    local n p msg
+
+    while true; do
+        list
+        n=`getn`
+        if [ -z $dflag ]; then
+        # Update entry
+            read -p "Enter the new page number: " p
+            sed -i '' -E "${n}s/\\${fs}.*\\${fs}/$fs$p$fs/" $BOOKMARK
+            msg="Edit another bookmark"
+        else
+        # Delete entry
+            sed -i '' ${n}d $BOOKMARK
+            msg="Delete another bookmark"
+        fi
+        if [ `yes_or_no "$msg"` = n ]; then
+            break
+        fi
+    done
+
+    exit 0
+}
+
+# Open a file in the bookmark
+open ()
+{
+    local path page
+
+    list
+    awk -F $fs <$BOOKMARK '
+        NR == '`getn`' {
+        if ($3 ~ /^.*\.pdf$/)
+                cmd = sprintf("xpdf %s %s&", $3, $2)
+        else if ($3 ~ /^.*\.djvu$/)
+                cmd = sprintf("djview -page=%d %s&", $2, $3)
+        else if ($3 ~ /^.*\.ps$/)
+                cmd = sprintf("gv -page=%d %s&", $2, $3)
+        else {
+                print("Unknown file type: ", $3) >"/dev/stderr"
+                exit(1)
+        }
+        system(cmd)
+        exit(0)
+        }'
+    exit $?
+}
+
+dflag=
+while getopts a:delho opt; do
+    case "$opt" in
+        a)
+            add "$OPTARG";;
+        d)
+            dflag=yes
+            edit;;
+        e)
+            edit;;
+        l)
+            list
+            return 0;;
+        o)
+            open;;
+        h|?)
+            usage;;
+    esac
+done
+shift $(($OPTIND-1))
+usage
