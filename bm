@@ -28,8 +28,9 @@ list ()
 yes_or_no ()
 {
     local in
-    while true; do
-        read -p "$1? (y/n): " in
+    while :
+    do
+        read -p "$1? (y/n): " in </dev/tty
         if [ $in = y -o $in = n ]; then
             echo $in
             return
@@ -47,8 +48,8 @@ add ()
         path="${PWD}/${path}"
     fi
 
-    read -p "Enter the bookmark title: " title
-    read -p "Enter the page number: " page
+    read -p "Enter the bookmark title: " title </dev/tty
+    read -p "Enter the page number: " page </dev/tty
     echo $title$fs$page$fs$path >> $BOOKMARK
 
     exit 0
@@ -60,9 +61,9 @@ getn ()
     local max n
 
     max=`sed -n '$=' $BOOKMARK`
-    read -p "Enter the bookmark number: " n
+    read -p "Enter the bookmark number: " n </dev/tty
     while ! [ $n -ge 1 -a $n -le $max ]; do
-        read -p "Choose a number between 1 and $max: " n
+        read -p "Choose a number between 1 and $max: " n </dev/tty
     done
     echo $n
 }
@@ -77,7 +78,7 @@ edit ()
         n=`getn`
         if [ -z $dflag ]; then
         # Update entry
-            read -p "Enter the new page number: " p
+            read -p "Enter the new page number: " p </dev/tty
             sed -i '' -E "${n}s/\\${fs}.*\\${fs}/$fs$p$fs/" $BOOKMARK
             msg="Edit another bookmark"
         else
