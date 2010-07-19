@@ -103,7 +103,7 @@ open ()
     awk -F $fs <$BOOKMARK '
         NR == '`getn`' {
         if ($3 ~ /^.*\.pdf$/)
-                cmd = sprintf("xpdf %s \"%s\"&", $3, $2)
+                cmd = sprintf("xpdf \"%s\" %d&", $3, $2)
         else if ($3 ~ /^.*\.djvu$/)
                 cmd = sprintf("djview -page=%d \"%s\"&", $2, $3)
         else if ($3 ~ /^.*\.ps$/)
